@@ -1,13 +1,40 @@
 document.getElementById('dataForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
-    let x = parseFloat(document.getElementById('xValue').value);
-    let terms = parseInt(document.getElementById('terms').value);
+    const x = parseFloat(document.getElementById('xValue').value);
+    const terms = parseInt(document.getElementById('terms').value);
 
-    let result = taylorSeriesExponential(x, terms);
+    if (isNaN(x) || isNaN(terms) || terms <= 0) {
+        document.getElementById('result').innerHTML = "لطفاً مقادیر معتبر وارد کنید.";
+        return;
+    }
 
-    document.getElementById('result').innerText = `تقریب e^${x} ≈ ${result}`;
+    const result = calculateTaylorSeries(x, terms);
+
+    const formattedResult = result.fractions
+        .map(frac => `<span>${frac}</span>`)
+        .join(' + ');
+
+    document.getElementById('result').innerHTML = `
+        تقریب <strong>e^${x}</strong>: <br>
+        <div style="margin-top: 10px;">${formattedResult} ≈ ${result.sum.toFixed(6)}</div>
+    `;
 });
+
+function calculateTaylorSeries(x, terms) {
+    let sum = 0;
+    const fractions = [];
+
+    for (let n = 0; n < terms; n++) {
+        const numerator = Math.pow(x, n);
+        const denominator = factorial(n);
+        sum += numerator / denominator;
+
+        fractions.push(`<sup>${numerator}</sup>/<sub>${denominator}</sub>`);
+    }
+
+    return { sum, fractions };
+}
 
 function factorial(n) {
     if (n === 0 || n === 1) return 1;
@@ -16,12 +43,4 @@ function factorial(n) {
         result *= i;
     }
     return result;
-}
-
-function taylorSeriesExponential(x, terms) {
-    let sum = 0;
-    for (let n = 0; n < terms; n++) {
-        sum += Math.pow(x, n) / factorial(n);
-    }
-    return sum;
 }
